@@ -90,8 +90,8 @@ def get_MARCEL_data(num_training=49000, num_validation=1000, num_test=1000,
     condensed to a single function.
     """
     # Load the raw Marcel data
-    cifar10_dir = 'datasets/cifar-10-batches-py'
-    X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
+    marcel_dir = 'datasets/'
+    X_train, y_train, X_test, y_test = load_MARCEL(marcel_dir)
 
     # Subsample the data
     mask = list(range(num_training, num_training + num_validation))
