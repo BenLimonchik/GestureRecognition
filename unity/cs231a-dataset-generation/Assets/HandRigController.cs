@@ -72,7 +72,7 @@ public class HandRigController : MonoBehaviour
 			hand.pinky.Joint3,
 		};
 
-		Debug.Log("Saving initial angles of joints.");
+		// Debug.Log("Saving initial angles of joints.");
 		ForEachJointAngle((JointAngle joint) => {
 			joint.InitialAngles = joint.Transform.localEulerAngles;
 			joint.Angles = joint.InitialAngles;
@@ -81,7 +81,7 @@ public class HandRigController : MonoBehaviour
 
 	public void Update ()
 	{
-		Debug.Log("Updating local euler angles.");
+		// Debug.Log("Updating local euler angles.");
 		ForEachJointAngle((JointAngle joint) => {
 			joint.Transform.localEulerAngles = joint.Angles;
 		});
