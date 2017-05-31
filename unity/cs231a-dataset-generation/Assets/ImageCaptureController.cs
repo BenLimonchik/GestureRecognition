@@ -4,11 +4,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ImageCaptureController : MonoBehaviour {
+	public enum Type {
+		Complex, Uniform
+	}
+
+	public Type imageType;
+
 	public int numScreenshots = 0;
 	public string fileName = "derp";
 	public string fileExtension = "jpg";
 
-	public Material backgroundMaterial;
+	public MeshRenderer bgRenderer;
+	public Material bgComplexMtl;
+	public Material bgUniformMtl;
 	public int numBackgrounds = 1;
 
 	public Light sunLight;
@@ -17,6 +25,8 @@ public class ImageCaptureController : MonoBehaviour {
 	public float lightIntensityMax = 1.0f;
 
 	public Transform hand;
+	public SkinnedMeshRenderer handRenderer;
+	public Material[] handMaterials;
 	public float maxDeltaX, maxDeltaY, maxDeltaZ, maxRotX, maxRotY, maxRotZ, minScale, maxScale;
 
 	private Vector3 sunInitialRotation;
@@ -55,7 +65,7 @@ public class ImageCaptureController : MonoBehaviour {
 			SetupBackground();
 			SetupLighting();
 			SetupHandModel();
-			outputName = string.Format("{0}{1}.{2}", fileName, (i + 1).ToString("D3"), fileExtension);
+			outputName = string.Format("{0}{1}.{2}", fileName, (i + 1).ToString("D4"), fileExtension);
 			++i;
 		}
 	}
@@ -68,12 +78,21 @@ public class ImageCaptureController : MonoBehaviour {
 	}
 
 	private void SetupBackground() {
-		string texturePath = string.Format("Backgrounds/pic_{0}", backgroundOrder[i % numBackgrounds].ToString("D3"));
-		Debug.Log(texturePath);
-		Texture2D texture = Resources.Load(texturePath) as Texture2D;
-		averageBgColor = GetAverageColor(texture);
-		backgroundMaterial.mainTexture = texture;
-		backgroundMaterial.mainTextureOffset = new Vector2(Random.value, Random.value);
+		if (imageType == Type.Complex) {
+			bgRenderer.material = bgComplexMtl;
+
+			string texturePath = string.Format("Backgrounds/pic_{0}", backgroundOrder[i % numBackgrounds].ToString("D3"));
+			Debug.Log(texturePath);
+			Texture2D texture = Resources.Load(texturePath) as Texture2D;
+			//averageBgColor = GetAverageColor(texture);
+			bgComplexMtl.mainTexture = texture;
+			bgComplexMtl.mainTextureOffset = new Vector2(Random.value, Random.value);
+		}
+
+		else if (imageType == Type.Uniform) {
+			bgRenderer.material = bgUniformMtl;
+			bgUniformMtl.color = new Color(Random.Range(0.75f, 0.85f), Random.Range(0.75f, 0.85f), Random.Range(0.75f, 0.85f));
+		}
 	}
 
 	private void SetupLighting() {
@@ -85,9 +104,9 @@ public class ImageCaptureController : MonoBehaviour {
 
 		Debug.Assert(lightIntensityMin < lightIntensityMax);
 		sunLight.intensity = (lightIntensityMax - lightIntensityMin) * Random.value + lightIntensityMin;
-		sunLight.color = averageBgColor;
+		//sunLight.color = averageBgColor;
 
-		Debug.LogFormat("Average BG color [{0}, {1}, {2}]", averageBgColor.r, averageBgColor.g, averageBgColor.b);
+		//Debug.LogFormat("Average BG color [{0}, {1}, {2}]", averageBgColor.r, averageBgColor.g, averageBgColor.b);
 	}
 
 	private void SetupHandModel() {
@@ -102,6 +121,9 @@ public class ImageCaptureController : MonoBehaviour {
 		hand.position = handInitialPosition + new Vector3(deltaX, deltaY, deltaZ);
 		hand.eulerAngles = handInitialRotation + new Vector3(rotX, rotY, rotZ);
 		hand.localScale = new Vector3(scale, scale, scale);
+
+		Material mat = handMaterials[Random.Range(0, handMaterials.Length)];
+		handRenderer.material = mat;
 	}
 
 	private Color GetAverageColor(Texture2D tex) {
