@@ -178,9 +178,11 @@ def get_MARCEL_data(num_training=49000, num_validation=60, num_test=100,
         X_val -= mean_image
         #X_test -= mean_image
 
-    # Transpose so that channels come first
-    X_train = X_train.transpose(0, 3, 1, 2).copy()
-    X_val = X_val.transpose(0, 3, 1, 2).copy()
+    # # Transpose so that channels come first
+    # X_train = X_train.transpose(0, 3, 1, 2).copy()
+    # X_val = X_val.transpose(0, 3, 1, 2).copy()
+
+
     #X_test = X_test.transpose(0, 3, 1, 2).copy()
 
     # Package data into a dictionary
