@@ -86,16 +86,13 @@ def load_MARCEL(ROOT):
     """ load all of marcel """
     xs = []
     ys = []
-    # for b in range(1,6):
-    #     f = os.path.join(ROOT, 'data_batch_%d' % (b, ))
-    #     X, Y = load_CIFAR_batch(f)
-    #     xs.append(X)
-    #     ys.append(Y)
-    # Xtr = np.concatenate(xs)
-    # Ytr = np.concatenate(ys)
-    # del X, Y
-    # Xte, Yte = load_CIFAR_batch(os.path.join(ROOT, 'test_batch'))
+    xs_test = []
+    ys_test = []
+
+
     gestures = ["A", "B", "C", "Five", "Point", "V"]
+    
+    # The following for loop collects the training data:
     for i in range(len(gestures)):
         gesture = gestures[i]
         path = ROOT +"train/"+gesture+"/"
@@ -108,23 +105,38 @@ def load_MARCEL(ROOT):
             if im.shape[0]==76 and im.shape[1]==66 and im.shape[2]==3:
                 xs.append(im)
                 ys.append(i)
-    print("done loop")
+    print("done collecting training data")
+
+    # The following for loop collects the Testing data:
+    # Note: if the path is set to "/uniform" the testing set only comes photos with uniform background
+    # (i.e. an easier classification task)
     # for j in range(len(gestures)):
     #     gesture = gestures[j]
-    #     dir = ROOT +"test/"+gesture
-    #     for f in os.listdir(dir):
-    #         im = misc.imread(f)
-    #         xs.append(im)
-    #         ys.append(j)
-    Xte = np.array([])
-    Yte = np.array([])
+    #     path = ROOT +"test/"+gesture+"/uniform/"
+    #     for f in os.listdir(path):
+    #         if f == ".DS_Store":
+    #             continue
+    #         image_dir = path+f
+    #         im = imread(image_dir)
+    #         #print(im.shape)
+    #         if im.shape[0]==76 and im.shape[1]==66 and im.shape[2]==3:
+    #             xs_test.append(im)
+    #             ys_test.append(i)
+    # print("done collecting testing data")
+
+    Xte = np.array(xs_test, dtype=np.float64)
+    Yte = np.array(ys_test, dtype=np.float64)
     Xtr = np.array(xs, dtype=np.float64)
     Ytr = np.array(ys, dtype=np.float64)
+    print('training')
     print(Xtr.shape)
     print(Ytr.shape)
+    print('testing')
+    print(Xte.shape)
+    print(Yte.shape)
     return Xtr, Ytr, Xte, Yte, Xtr.shape[0]
 
-def get_MARCEL_data(num_training=49000, num_validation=50, num_test=0,
+def get_MARCEL_data(num_training=49000, num_validation=60, num_test=100,
                      subtract_mean=True):
     """
     Load the Marcel dataset from disk and perform preprocessing to prepare
@@ -134,17 +146,29 @@ def get_MARCEL_data(num_training=49000, num_validation=50, num_test=0,
     # Load the raw Marcel data
     marcel_dir = 'cs231n/datasets/'
     X_train, y_train, X_test, y_test, num_training = load_MARCEL(marcel_dir)
-    num_training -=  num_validation
+    print('num_training',num_training)
+    num_training -=  num_validation + num_test
     # Subsample the data
+    print('num_training',num_training)
+    print('num_validation',num_validation)
+    print('num_test',num_test)
+    print(X_train.shape)
     mask = list(range(num_training, num_training + num_validation))
     X_val = X_train[mask]
     y_val = y_train[mask]
+    #TODO: remove the following testing once testing has been processed:
+    mask = list(range(num_training + num_validation, num_training + num_validation+num_test))
+    X_test = X_train[mask]
+    y_test = y_train[mask]
+
     mask = list(range(num_training))
     X_train = X_train[mask]
     y_train = y_train[mask]
-    mask = list(range(num_test))
-    X_test = X_test[mask]
-    y_test = y_test[mask]
+    
+    # TODO bring back this code (actual testing data) once testing has been converted to the correct dimensions
+    # mask = list(range(num_test))
+    # X_test = X_test[mask]
+    # y_test = y_test[mask]
 
     # Normalize the data: subtract the mean image
     if subtract_mean:
@@ -162,8 +186,8 @@ def get_MARCEL_data(num_training=49000, num_validation=50, num_test=0,
     # Package data into a dictionary
     return {
       'X_train': X_train, 'y_train': y_train,
-      'X_val': X_val, 'y_val': y_val
-      #'X_test': X_test, 'y_test': y_test,
+      'X_val': X_val, 'y_val': y_val,
+      'X_test': X_test, 'y_test': y_test,
     }
 
 
