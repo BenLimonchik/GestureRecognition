@@ -68,7 +68,7 @@ public class ImageCaptureController : MonoBehaviour {
 	}
 
 	private void SetupBackground() {
-		string texturePath = string.Format("Backgrounds/pic_{0}", backgroundOrder[i].ToString("D3"));
+		string texturePath = string.Format("Backgrounds/pic_{0}", backgroundOrder[i % numBackgrounds].ToString("D3"));
 		Debug.Log(texturePath);
 		Texture2D texture = Resources.Load(texturePath) as Texture2D;
 		averageBgColor = GetAverageColor(texture);
