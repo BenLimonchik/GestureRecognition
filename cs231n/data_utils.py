@@ -113,6 +113,7 @@ def load_MARCEL(ROOT):
     for j in range(len(gestures)):
         gesture = gestures[j]
         path = ROOT +"test/"+gesture+"/uniform/"
+        print(path)
         for f in os.listdir(path):
             if f == ".DS_Store":
                 continue
@@ -121,7 +122,7 @@ def load_MARCEL(ROOT):
             #print(im.shape)
             if im.shape[0]==76 and im.shape[1]==66 and im.shape[2]==3:
                 xs_test.append(im)
-                ys_test.append(i)
+                ys_test.append(j)
     print("done collecting testing data")
 
     Xte = np.array(xs_test, dtype=np.float64)
@@ -136,7 +137,7 @@ def load_MARCEL(ROOT):
     print(Yte.shape)
     return Xtr, Ytr, Xte, Yte, Xtr.shape[0]
 
-def get_MARCEL_data(num_training=49000, num_validation=60, num_test=100,
+def get_MARCEL_data(num_training=49000, num_validation=100, num_test=382,
                      subtract_mean=True):
     """
     Load the Marcel dataset from disk and perform preprocessing to prepare
@@ -156,8 +157,12 @@ def get_MARCEL_data(num_training=49000, num_validation=60, num_test=100,
     print('num_validation',num_validation)
     print('num_test',num_test)
     print(X_train.shape)
-
-    mask = list(range(num_training, num_training + num_validation))
+    
+    indices = np.arange(num_training + num_validation)
+    np.random.shuffle(indices)
+    
+    #mask = list(range(num_training, num_training + num_validation))
+    mask = indices[num_training:]
     X_val = X_train[mask]
     y_val = y_train[mask]
     
@@ -166,7 +171,8 @@ def get_MARCEL_data(num_training=49000, num_validation=60, num_test=100,
     # X_test = X_train[mask]
     # y_test = y_train[mask]
 
-    mask = list(range(num_training))
+    #mask = list(range(num_training))
+    mask = indices[:num_training]
     X_train = X_train[mask]
     y_train = y_train[mask]
     

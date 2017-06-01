@@ -13,8 +13,8 @@ def my_model(X,y,is_training):
     b2 = tf.get_variable("b2", shape=[512])
     W3 = tf.get_variable("W3", shape=[512, 128])
     b3 = tf.get_variable("b3", shape=[128])
-    W4 = tf.get_variable("W4", shape=[128, 10])
-    b4 = tf.get_variable("b4", shape=[10])
+    W4 = tf.get_variable("W4", shape=[128, 6])
+    b4 = tf.get_variable("b4", shape=[6])
 
     # first conv layer (with relu and bn)
     a1 = tf.nn.conv2d(X, Wconv1, strides=[1,1,1,1], padding="VALID") + bconv1
@@ -27,7 +27,7 @@ def my_model(X,y,is_training):
     
     # pool layer
     h3 = tf.layers.max_pooling2d(inputs=h11, pool_size=[2, 2], strides=2) 
-    
+    print('h3',h3.shape)
     # three affine layers
     h3_flat = tf.reshape(h3,[-1,33600])
     h4 = tf.matmul(h3_flat,W1) + b1
