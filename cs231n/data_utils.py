@@ -137,7 +137,7 @@ def load_MARCEL(ROOT):
     print(Yte.shape)
     return Xtr, Ytr, Xte, Yte, Xtr.shape[0]
 
-def get_MARCEL_data(num_training=49000, num_validation=100, num_test=382,
+def get_MARCEL_data(num_training=49000, num_validation=300, num_test=382,
                      subtract_mean=True):
     """
     Load the Marcel dataset from disk and perform preprocessing to prepare
