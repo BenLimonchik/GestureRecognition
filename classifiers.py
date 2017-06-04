@@ -101,7 +101,7 @@ def my_model(X,y,is_training):
                  tf.nn.l2_loss(W4)
                 )
     
-    return y_out, reg
+    return y_out, reg, Wconv1
 
 
 def complex_model1(X,y,is_training):
