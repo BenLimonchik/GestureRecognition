@@ -87,7 +87,7 @@ public class HandRigController : MonoBehaviour
 		});
 	}
 
-	private void ForEachJointAngle(Action<JointAngle> lambda) {
+	public void ForEachJointAngle(Action<JointAngle> lambda) {
 		foreach (var joint in joints)
 		{
 			lambda(joint);

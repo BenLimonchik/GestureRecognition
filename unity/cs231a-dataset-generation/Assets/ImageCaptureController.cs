@@ -2,15 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 public class ImageCaptureController : MonoBehaviour {
 	public enum Type {
 		Complex, Uniform
 	}
 
+	public enum Gesture {
+		A, B, C, Five, Point, Rock, ThumbsUp, V
+	}
+
+	private Dictionary<Gesture, string> prefabs = new Dictionary<Gesture, string>();
 	public Type imageType;
+	public Gesture gesture;
 
 	public int numScreenshots = 0;
+	public int startIndex;
 	public string fileName = "derp";
 	public string fileExtension = "jpg";
 
@@ -24,10 +32,12 @@ public class ImageCaptureController : MonoBehaviour {
 	public float lightIntensityMin = 0.0f;
 	public float lightIntensityMax = 1.0f;
 
-	public Transform hand;
-	public SkinnedMeshRenderer handRenderer;
+	private Transform hand;
+	private HandRigController handRig;
+	private SkinnedMeshRenderer handRenderer;
 	public Material[] handMaterials;
 	public float maxDeltaX, maxDeltaY, maxDeltaZ, maxRotX, maxRotY, maxRotZ, minScale, maxScale;
+	public float maxHandRigRotX, maxHandRigRotY, maxHandRigRotZ;
 
 	private Vector3 sunInitialRotation;
 	private Vector3 handInitialPosition;
@@ -39,6 +49,20 @@ public class ImageCaptureController : MonoBehaviour {
 	private int[] backgroundOrder;
 
 	void Start() {
+		prefabs[Gesture.A] = "Hands/Hand Rig - A";
+		prefabs[Gesture.B] = "Hands/Hand Rig - B";
+		prefabs[Gesture.C] = "Hands/Hand Rig - C";
+		prefabs[Gesture.Five] = "Hands/Hand Rig - Five";
+		prefabs[Gesture.Point] = "Hands/Hand Rig - Point";
+		prefabs[Gesture.Rock] = "Hands/Hand Rig - Rock";
+		prefabs[Gesture.ThumbsUp] = "Hands/Hand Rig - ThumbsUp";
+		prefabs[Gesture.V] = "Hands/Hand Rig - V";
+
+		var handObject = GameObject.Instantiate(Resources.Load(prefabs[gesture])) as GameObject;
+		hand = handObject.transform;
+		handRig = handObject.GetComponentInChildren<HandRigController>();
+		handRenderer = handObject.GetComponentInChildren<SkinnedMeshRenderer>();
+
 		int ticks = System.Environment.TickCount;
 		Debug.Log("Ticks => seed = " + ticks);
 		Random.seed = ticks;
@@ -65,14 +89,32 @@ public class ImageCaptureController : MonoBehaviour {
 			SetupBackground();
 			SetupLighting();
 			SetupHandModel();
-			outputName = string.Format("{0}{1}.{2}", fileName, (i + 1).ToString("D4"), fileExtension);
+			outputName = string.Format("{0}{1}.{2}", fileName, (i + 1 + startIndex).ToString("D4"), fileExtension);
 			++i;
 		}
 	}
 
 	void OnPostRender() {
 		if (outputName.Length > 0) {
-			Application.CaptureScreenshot(outputName);
+			//Application.CaptureScreenshot(outputName);
+			int targetWidth = 66;
+			int targetHeight = 76;
+
+			var shot = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+			shot.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0, false);
+			while (shot.width > 2 * targetWidth) {
+				TextureScale.Bilinear(shot, shot.width / 2, shot.height / 2);
+			}
+			TextureScale.Bilinear(shot, 66, 76);
+			if (shot.width > 66 || shot.height > 76) {
+				//TextureScale.Bilinear(shot, 66, 76);
+			}
+			var bytes = shot.EncodeToPNG();
+			FileStream file = File.Open(outputName, System.IO.FileMode.Create);
+			BinaryWriter binaryWriter = new BinaryWriter(file);
+			binaryWriter.Write(bytes);
+			file.Close();
+
 			outputName = "";
 		}
 	}
@@ -109,6 +151,13 @@ public class ImageCaptureController : MonoBehaviour {
 		//Debug.LogFormat("Average BG color [{0}, {1}, {2}]", averageBgColor.r, averageBgColor.g, averageBgColor.b);
 	}
 
+	private void RandomizeJointAngle(HandRigController.JointAngle joint) {
+		joint.Angles = joint.InitialAngles + new Vector3(
+			Random.Range(-maxHandRigRotX, maxHandRigRotX),
+			Random.Range(-maxHandRigRotY, maxHandRigRotY),
+			Random.Range(-maxHandRigRotZ, maxHandRigRotZ));
+	}
+
 	private void SetupHandModel() {
 		float deltaX = Random.Range(-maxDeltaX, maxDeltaX);
 		float deltaY = Random.Range(-maxDeltaY, maxDeltaY);
@@ -124,6 +173,8 @@ public class ImageCaptureController : MonoBehaviour {
 
 		Material mat = handMaterials[Random.Range(0, handMaterials.Length)];
 		handRenderer.material = mat;
+
+		handRig.ForEachJointAngle(RandomizeJointAngle);
 	}
 
 	private Color GetAverageColor(Texture2D tex) {
